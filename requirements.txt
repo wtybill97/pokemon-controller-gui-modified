@@ -1,0 +1,21 @@
+# opencv-python-headless
+opencv-python
+# opencv-contrib-python
+pillow
+PySide6
+pyserial
+pygame
+pytesseract
+rapidocr_onnxruntime
+easyocr
+pyperclip
+# torch
+# ultralytics
+#torchvision
+#scikit-learn
+imageio-ffmpeg
+paddlepaddle
+paddleocr
+pyautogui
+obs-websocket-py
+requests

@@ -1,0 +1,1383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>960</width>
+    <height>750</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>960</width>
+    <height>750</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>960</width>
+    <height>750</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>NS控制台</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="lblCameraFrame">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>640</width>
+      <height>360</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Plain</enum>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>380</y>
+      <width>641</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>采集设备</string>
+    </property>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>25</y>
+       <width>30</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>30</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>30</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>视频:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cbxCameraList">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>25</y>
+       <width>240</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>240</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>240</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnCapture">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>23</y>
+       <width>60</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>60</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>截图</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnRescan">
+     <property name="geometry">
+      <rect>
+       <x>550</x>
+       <y>25</y>
+       <width>80</width>
+       <height>50</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>搜索设备</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>25</y>
+       <width>30</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>30</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>30</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>FPS:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cbxFps">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>25</y>
+       <width>60</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>30</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>30</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>30</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>音频:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cbxAudioList">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>50</y>
+       <width>240</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>240</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>240</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkMute">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>50</y>
+       <width>87</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>静音</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>465</y>
+      <width>641</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>控制设备</string>
+    </property>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>25</y>
+       <width>30</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>30</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>30</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>设备:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cbxSerialList">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>25</y>
+       <width>240</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>240</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>240</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnSerialRescan">
+     <property name="geometry">
+      <rect>
+       <x>550</x>
+       <y>20</y>
+       <width>80</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>搜索设备</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_r">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>90</y>
+       <width>60</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>R u</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_lstick_press">
+     <property name="geometry">
+      <rect>
+       <x>128</x>
+       <y>118</y>
+       <width>19</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>x</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_action">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>220</y>
+       <width>521</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>实时命令：</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dpad_b">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>190</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>下 v</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_zl">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>63</y>
+       <width>71</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>ZL q</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_home">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>108</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>H h</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_lstick_b">
+     <property name="geometry">
+      <rect>
+       <x>125</x>
+       <y>140</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>s</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_zr">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>63</y>
+       <width>71</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>ZR o</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_rstick_b">
+     <property name="geometry">
+      <rect>
+       <x>335</x>
+       <y>190</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>.</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_rstick_l">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>165</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>,</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_lstick_t">
+     <property name="geometry">
+      <rect>
+       <x>125</x>
+       <y>90</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>w</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_y">
+     <property name="geometry">
+      <rect>
+       <x>385</x>
+       <y>115</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>Y j</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_b">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>140</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>B k</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_rstick_r">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>165</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>/</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_rstick_press">
+     <property name="geometry">
+      <rect>
+       <x>338</x>
+       <y>168</y>
+       <width>19</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>'</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_lstick_r">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>115</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>d</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dpad_l">
+     <property name="geometry">
+      <rect>
+       <x>175</x>
+       <y>165</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>左 c</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_plus">
+     <property name="geometry">
+      <rect>
+       <x>335</x>
+       <y>83</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>+ y</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_minus">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>83</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>- r</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_x">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>90</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>X i</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_lstick_l">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>115</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>a</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dpad_r">
+     <property name="geometry">
+      <rect>
+       <x>225</x>
+       <y>165</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>右 b</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_rstick_t">
+     <property name="geometry">
+      <rect>
+       <x>335</x>
+       <y>140</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_capture">
+     <property name="geometry">
+      <rect>
+       <x>225</x>
+       <y>108</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>C g</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_a">
+     <property name="geometry">
+      <rect>
+       <x>435</x>
+       <y>115</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>A l</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dpad_t">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>140</y>
+       <width>25</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>上 f</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_l">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>90</y>
+       <width>60</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(170, 170, 170)</string>
+     </property>
+     <property name="text">
+      <string>L e</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="btnClearLog">
+    <property name="geometry">
+     <rect>
+      <x>871</x>
+      <y>374</y>
+      <width>80</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>清空</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="textBrowserLog">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>400</y>
+      <width>291</width>
+      <height>316</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="gpb_mode">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>10</y>
+      <width>291</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>输入方式</string>
+    </property>
+    <widget class="QToolBox" name="toolBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>271</width>
+       <height>331</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="page_realtime">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>271</width>
+        <height>223</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>实时控制</string>
+      </attribute>
+      <widget class="QComboBox" name="cbxJoystickList">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>40</y>
+         <width>211</width>
+         <height>26</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>30</width>
+         <height>26</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>手柄:</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnJoystickRescan">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>70</y>
+         <width>80</width>
+         <height>35</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>搜索设备</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chkJoystickButtonSwitch">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>110</y>
+         <width>201</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>交换A与B，X与Y按键</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>130</y>
+         <width>171</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color:rgb(140, 140, 140)</string>
+       </property>
+       <property name="text">
+        <string>适配Switch Pro以外手柄布局</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chkJoystickTriggerModel2">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>150</y>
+         <width>221</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>手柄摇杆、扳机键方案2</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_9">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>170</y>
+         <width>171</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color:rgb(140, 140, 140)</string>
+       </property>
+       <property name="text">
+        <string>摇杆、扳机适配有误时启用</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_7">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>30</width>
+         <height>26</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>键盘:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_8">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>10</y>
+         <width>201</width>
+         <height>26</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>201</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>211</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>已启用</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="page_macro">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>271</width>
+        <height>223</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>无识别脚本</string>
+      </attribute>
+      <widget class="QListWidget" name="listWidget_macro">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>271</width>
+         <height>171</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>271</width>
+         <height>171</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>271</width>
+         <height>171</height>
+        </size>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_macro_opt">
+       <property name="geometry">
+        <rect>
+         <x>195</x>
+         <y>190</y>
+         <width>70</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>启动</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_macro_redo">
+       <property name="geometry">
+        <rect>
+         <x>85</x>
+         <y>190</y>
+         <width>100</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>重做(Ctrl+R)</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_macro_refresh">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>190</y>
+         <width>70</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>刷新</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="page_recognition">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>271</width>
+        <height>223</height>
+       </rect>
+      </property>
+     <attribute name="label">
+      <string>图像识别脚本</string>
+     </attribute>
+     <widget class="QPushButton" name="btn_recognition_opt">
+      <property name="geometry">
+       <rect>
+         <x>195</x>
+         <y>190</y>
+         <width>70</width>
+         <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>启动</string>
+       </property>
+      </widget>
+     <widget class="QPushButton" name="btn_recognition_redo">
+      <property name="geometry">
+       <rect>
+         <x>85</x>
+         <y>190</y>
+         <width>100</width>
+         <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>重做(Ctrl+R)</string>
+      </property>
+     </widget>
+      <widget class="QListWidget" name="listWidget_recognition">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>271</width>
+         <height>171</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>271</width>
+         <height>171</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>271</width>
+         <height>171</height>
+        </size>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionCOM1">
+   <property name="text">
+    <string>COM1</string>
+   </property>
+  </action>
+  <action name="action_5">
+   <property name="text">
+    <string>添加</string>
+   </property>
+  </action>
+  <action name="actionCamera1">
+   <property name="text">
+    <string>Camera1</string>
+   </property>
+  </action>
+  <action name="actionCamera2">
+   <property name="text">
+    <string>Camera2</string>
+   </property>
+  </action>
+  <action name="actionStart">
+   <property name="text">
+    <string>Start</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionRescan">
+   <property name="text">
+    <string>Rescan</string>
+   </property>
+  </action>
+  <action name="actionAudio1">
+   <property name="text">
+    <string>Audio1</string>
+   </property>
+  </action>
+  <action name="actionAudio2">
+   <property name="text">
+    <string>Audio2</string>
+   </property>
+  </action>
+  <action name="actionRescan_2">
+   <property name="text">
+    <string>Rescan</string>
+   </property>
+  </action>
+  <action name="actionMute">
+   <property name="text">
+    <string>Mute</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

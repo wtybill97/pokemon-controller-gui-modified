@@ -1,0 +1,144 @@
+--甜甜圈--
+<donut>
+body:
+Plus:0.1
+1.2
+Y:0.1
+1.2
+{
+    BOTTOM:0.05
+    0.15
+}*3
+A:0.1
+0.7
+A:0.05
+A:0.05
+11
+LStick@0,-127:0.2->LStick@0,-127|B:0.2->LStick@0,-127:0.9
+A:0.05
+7.5
+LStick@0,-127:0.15->LStick@0,-127|B:0.15->LStick@0,-127:1.3->LStick@-127,-40:0.32
+0.5
+A:0.05
+0.6
+A:0.05
+0.6
+A:0.05
+3
+# 选择树果
+{Minus:0.1
+0.2}?(berry1_position>33)
+{{
+    LStick@0,-127:0.05
+    0.2
+}*berry1_position
+}?(berry1_position<34)
+{{
+    LStick@0,-127:0.05
+    0.2
+}*(berry1_position-33)
+}?(berry1_position>34)
+{
+    A:0.05
+    0.1
+}*berry1_count
+{Minus:0.1
+0.2}?((berry1_position+berry2_position)>33 and (berry1_position<34))
+{
+{
+    LStick@0,-127:0.05
+    0.2
+}*berry2_position
+}?((berry1_position+berry2_position)<34)
+{
+{
+    LStick@0,-127:0.05
+    0.2
+}*(berry1_position+berry2_position-33)
+}?((berry1_position+berry2_position)>33 and (berry2_count>0))
+{
+    A:0.05
+    0.1
+}*berry2_count
+{Minus:0.1
+0.2}?((berry1_position<34) and (berry3_count>0) and ((berry1_position+berry2_position)<34) and ((berry1_position+berry2_position+berry3_position)>33))
+{
+{
+    LStick@0,-127:0.05
+    0.2
+}*berry3_position
+}?((berry1_position+berry2_position+berry3_position)<34) 
+{
+{
+    LStick@0,-127:0.05
+    0.2
+}*(berry1_position+berry2_position+berry3_position-33)
+}?(((berry1_position+berry2_position+berry3_position)>33) and (berry3_count>0))
+{
+    A:0.05
+    0.1
+}*berry3_count
+{Minus:0.1
+0.2}?((berry1_position<34) and (berry4_count>0) and ((berry1_position+berry2_position)<34) and ((berry1_position+berry2_position+berry3_position)<34) and ((berry1_position+berry2_position+berry3_position+berry4_position)>33))
+{
+{
+    LStick@0,-127:0.05
+    0.2
+}*berry4_position
+}?((berry1_position+berry2_position+berry3_position+berry4_position)<34) 
+{
+{
+    LStick@0,-127:0.05
+    0.2
+}*(berry1_position+berry2_position+berry3_position+berry4_position-33)
+}?(((berry1_position+berry2_position+berry3_position+berry4_position)>33) and (berry4_count>0))
+{
+    A:0.05
+    0.1
+}*berry4_count
+0.1
+Plus:0.1
+{
+    A:0.1
+    0.51
+}*12
+3.5
+
+--传送保存--
+<stop>
+body:
+3
+A:0.1
+1
+B:0.1
+5
+Plus:0.1
+1
+Y:0.1
+1
+
+A:0.1
+0.5
+A:0.05
+A:0.05
+12
+
+
+--昼夜交替--
+<daynight>
+body:
+30
+Plus:0.1
+1
+Y:0.1
+1
+A:0.1
+0.5
+A:0.05
+A:0.05
+12
+
+--保存视频--
+<capture>
+body:
+Capture:1

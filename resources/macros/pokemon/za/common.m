@@ -1,0 +1,35 @@
+--打开宝可梦ZA--
+<open_game--ns1|NS1|False--restore_backup|RestoreBackup|False>
+EXEC>restore_backup=(restore_backup|space|if|space|('restore_backup'|space|in|space|locals())|space|or|space|('restore_backup'|space|in|space|globals())|space|else|space|False)
+A:0.1
+{0.8}?ns1
+0.7
+A:0.1
+{12}?ns1
+7
+{
+    A:0.1
+    1
+}?ns1
+{
+    TOP|X|B:0.1
+    0.8
+    A:0.05
+    0.3
+    A:0.05
+    0.3
+    A:0.05
+    0.3
+    A:0.05
+    8
+}?restore_backup
+{
+A:0.1
+4
+}?(not|space|restore_backup)
+{20}?ns1
+
+--重启宝可梦ZA--
+<restart_game--ns1|NS1|False>
+[common.close_game]
+[open_game]

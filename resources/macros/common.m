@@ -1,0 +1,86 @@
+--唤醒手柄--
+<wakeup_joystick>
+LPress:0.1
+1
+LPress:0.1
+3
+
+--返回主界面--
+<return_home--ns1|NS1|True>
+Home:0.1
+0.7
+{0.8}?ns1
+
+--返回游戏界面（非Home页面）--
+<return_game--ns1|NS1|True>
+[return_home]
+A:0.1
+0.7
+{0.8}?ns1
+
+--关闭游戏--
+<close_game--ns1|NS1|True>
+[return_home]
+X:0.1
+0.3
+{0.2}?ns1
+A:0.1
+1
+{4}?ns1
+
+--连续点击A--
+<press_button_a|连续点击A>
+A:0.1
+0.2
+
+--连续点击B--
+<press_button_b|连续点击B>
+B:0.1
+0.2
+
+--进入休眠--
+<switch_sleep--ns1|NS1|True>
+HOME:4
+1
+A:0.1
+0.5
+A:0.1
+
+<input_text_by_qwer|输入文本(输入框强制大写)|1--input_text|待输入文本|>
+EXEC>inputs=input_text_by_qwer(input_text)
+EXEC>input_lens=len(inputs);current_input_index=0;
+{
+    EXEC>x,y=inputs[current_input_index]
+    {
+        {
+            LStick@127,0:0.05
+            0.2
+        }*x
+    }?x>0
+    {
+        EXEC>x=-x
+        {
+            LStick@-127,0:0.05
+            0.2
+        }*x
+    }?x<0
+    {
+        {
+            LStick@0,127:0.05
+            0.2
+        }*y
+    }?y>0
+    {
+        EXEC>y=-y
+        {
+            LStick@0,-127:0.05
+            0.2
+        }*y
+    }?y<0
+    A:0.05
+    0.2
+    EXEC>current_input_index=current_input_index+1
+}*input_lens
+PLUS:0.1
+0.3
+A:0.1

@@ -1,0 +1,21 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="opencv-python" />
+          <option value="pillow" />
+          <option value="PySide6" />
+          <option value="pyserial" />
+          <option value="pygame" />
+          <option value="pytesseract" />
+          <option value="rapidocr_onnxruntime" />
+          <option value="easyocr" />
+          <option value="pyperclip" />
+          <option value="imageio-ffmpeg" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
