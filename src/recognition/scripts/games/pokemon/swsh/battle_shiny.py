@@ -3,6 +3,8 @@ import time
 from recognition.scripts.base.base_script import BaseScript, WorkflowEnum
 import cv2
 from recognition.scripts.parameter_struct import ScriptParameter
+import os
+from datetime import datetime
 
 DEBUG = False
 
@@ -159,9 +161,37 @@ class SwshBattleShiny(BaseScript):
                     if self.current_frame_count - self._cycle_step_2_frame_count_check_1 <= 4:
                         self._cycle_step_index += 1
                         return
+                    self.macro_text_run("CAPTURE:1",block=True)
                     self.macro_stop(block=False)
                     self.send_log("检测到闪光，请人工核查，已运行{}次，耗时{}小时{}分{}秒".format(self.cycle_times, int(
                         run_time_span/3600), int((run_time_span % 3600) / 60), int(run_time_span % 60)))
+                    try:
+                        time.sleep(5)
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        screenshot_path = f"shiny_{timestamp}.png"
+                        cv2.imwrite(screenshot_path, self.current_frame_960x540)
+                        self.send_log(f"闪光宝可梦截图已保存: {screenshot_path}")
+
+                        # 准备飞书内容
+                        feishu_content = {
+                            "运行次数": self.cycle_times,
+                            "耗时": f"{int(run_time_span/3600)}小时{int((run_time_span % 3600) / 60)}分{int(run_time_span % 60)}秒"
+                        }
+
+                        # 统一发送通知
+                        self.send_notification(
+                        title='✨ 捕获到闪光宝可梦！',
+                        feishu_content=feishu_content,
+                        image_path=screenshot_path,
+                        meow_title="✨ 捕获到闪光宝可梦！",
+                        meow_content=f"运行次数: {self.cycle_times}\n耗时: {int(run_time_span/3600)}小时{int((run_time_span % 3600) / 60)}分{int(run_time_span % 60)}秒"
+                        )
+                        self._trigger_obs_save('shiny', title='定点闪光', cycle_times=self.cycle_times)
+                        # 删除截图
+                        os.remove(screenshot_path)
+                    except Exception as e:
+                        self.send_log(f"发送闪光截图失败: {e}")
+
                     self._finished_process()
         elif self._cycle_step_2_time_monotonic_check_1_temp > 0 and self._cycle_step_2_time_monotonic_check_1 == 0:
             self._cycle_step_2_time_monotonic_check_1 = self._cycle_step_2_time_monotonic_check_1_temp
@@ -176,8 +206,7 @@ class SwshBattleShiny(BaseScript):
     def _finished_process(self):
         run_time_span = self.run_time_span
         self.macro_stop(block=True)
-        self.macro_run("common.switch_sleep",
-                       loop=1, paras={}, block=True, timeout=10)
+        #self.macro_run("common.switch_sleep",loop=1, paras={}, block=True, timeout=10)
         self.send_log("[{}] 脚本完成，已运行{}次，耗时{}小时{}分{}秒".format(SwshBattleShiny.script_name(), self.cycle_times - 1, int(
             run_time_span/3600), int((run_time_span % 3600) / 60), int(run_time_span % 60)))
         self.stop_work()

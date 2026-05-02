@@ -304,13 +304,30 @@ class ZaDlcDonut(BaseScript):
                     "details":stats,
                     "consecutive_failures": self._consecutive_daynight_count
                 }
-                self._send_feishu_webhook('script_error', '⚠️ 脚本异常停止', error_content)
+                
+                # 添加 MeoW 通知
+                meow_title = "脚本异常停止"
+                meow_content=f"停止原因：昼夜切换后连续识别失败\n{stats}"
+                self.send_notification(
+                title='⚠️ 脚本异常停止',
+                feishu_content=error_content,
+                meow_title=meow_title,
+                meow_content=meow_content
+                )
                 self.stop_work()
                 return
             self.send_log("执行昼夜切换操作...")
             self.macro_run("recognition.pokemon.za.dlc.donut.daynight", loop=1, block=True, timeout=None)
             daynight_content = {"reason": "昼夜切换"}
-            self._send_feishu_webhook('daynight', '⚠️ 昼夜切换', daynight_content)
+            # 添加 MeoW 通知
+            meow_title = "昼夜切换"
+            meow_content = "执行昼夜切换操作..."
+            self.send_notification(
+                title='⚠️ 昼夜切换',
+                feishu_content=daynight_content,
+                meow_title=meow_title,
+                meow_content=meow_content
+            )
             self._need_daynight = False
 
         paras = {
@@ -343,7 +360,15 @@ class ZaDlcDonut(BaseScript):
         if text4 and '发生错误' in text4:
             self.send_log(f"switch黑屏，停止工作")
             error_content = {"reason": "switch发生错误，已黑屏"}
-            self._send_feishu_webhook('script_error', '⚠️ 脚本异常停止', error_content)
+            # 添加 MeoW 通知
+            meow_title = "⚠️ 脚本异常停止"
+            meow_content=f"switch发生错误，已黑屏"
+            self.send_notification(
+            title='⚠️ 脚本异常停止',
+            feishu_content=error_content,
+            meow_title=meow_title,
+            meow_content=meow_content
+            )
             self.stop_work()
             return
 
@@ -468,8 +493,16 @@ class ZaDlcDonut(BaseScript):
         if text3:
             success_content["power3"] = text3
 
-        self._send_feishu_webhook('donut_success', f'✅ 甜甜圈成功 #{self._success_count}', success_content)
         self.send_log(f"✓ 成功找到符合条件的甜甜圈！当前成功次数：{self._success_count}/{self._target_success_count}")
+        # 添加 MeoW 通知
+        meow_title = f'✅ 甜甜圈成功 #{self._success_count}'
+        meow_content = f"配方：{self.get_para('Recipe')}\n{stats}\n{text1}\n{text2}\n{text3}"   # stats 已定义
+        self.send_notification(
+        title=f'✅ 甜甜圈成功 #{self._success_count}',
+        feishu_content=success_content,
+        meow_title=meow_title,
+        meow_content=meow_content
+        )
 
         # 特定配方触发快捷键
         if self.get_para("Recipe") in ["闪耀力 - 混合 - 2.13%/0.118%", "闪耀力 - 彩虹 - 1.59%/0.242%"]:
@@ -487,7 +520,15 @@ class ZaDlcDonut(BaseScript):
                 "reason": "正常完成",
                 "total_cycles": self.cycle_times - 1
             }
-            self._send_feishu_webhook('script_stop', '🛑 脚本已停止', stop_content)
+            # 添加 MeoW 通知
+            meow_title = f"🛑 脚本已停止"
+            meow_content = f"已达到目标成功次数 {self._target_success_count}，脚本停止"   # stats 已定义
+            self.send_notification(
+            title='🛑 脚本已停止',
+            feishu_content=stop_content,
+            meow_title=meow_title,
+            meow_content=meow_content
+            )
             self._finished_process()
         else:
             self.send_log(f"继续下一次循环，还需 {self._target_success_count - self._success_count} 次成功")
@@ -652,7 +693,15 @@ class ZaDlcDonut(BaseScript):
                 "run_time_seconds": self.run_time_span,
                 #"success_count": self._success_count
             }
-            self._send_feishu_webhook('script_stop', f'🕒 运行时间到达 {self._durations} 分钟', stop_content)
+            # 添加 MeoW 通知
+            meow_title = f'🕒 运行时间到达 {self._durations} 分钟'
+            meow_content = f'运行时间到达 {self._durations} 分钟'   # stats 已定义
+            self.send_notification(
+            title=f'🕒 运行时间到达 {self._durations} 分钟',
+            feishu_content=stop_content,
+            meow_title=meow_title,
+            meow_content=meow_content
+            )
             self._finished_process()
             return True
         return False
@@ -669,7 +718,15 @@ class ZaDlcDonut(BaseScript):
                 "total_cycles": self.cycle_times,
                 "success_count": self._success_count
             }
-            self._send_feishu_webhook('script_stop', f'🔢 运行次数到达 {self._loop} 次', stop_content)
+            # 添加 MeoW 通知
+            meow_title = "运行次数到达设定值"
+            meow_content = f'🔢运行次数到达 {self._loop} 次'   # stats 已定义
+            self.send_notification(
+            title=f'🔢 运行次数到达 {self._loop} 次',
+            feishu_content=stop_content,
+            meow_title=meow_title,
+            meow_content=meow_content
+            )
             self._finished_process()
             return True
         return False

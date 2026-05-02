@@ -155,33 +155,28 @@ class SWSHDAShinyKeep(BaseSubStep):
             cv2.imwrite(screenshot_path, self.script.current_frame_960x540)
             self.script.send_log(f"闪光宝可梦截图已保存: {screenshot_path}")
 
-            image_key = self.script._upload_feishu_image(screenshot_path)
-            if image_key:
-                content = {
-                    '闪光宝可梦类型': '传说宝可梦' if is_legendary else '非传说宝可梦',
-                    '累计闪光数': f"{self.script._shiny_count}/{self.script._total_catch_count}",
-                    #'本轮次数': self.script.cycle_times,
-                    '成功攻略次数': f"{self.script._win_count}/{self.script.cycle_times}",
-                    '累计极矿石': self.script._dynite_ore_total,
-                    #'累计捕获宝可梦': self.script._total_catch_count
-                }
-                title = '✨ 保留并捕获了闪光宝可梦！' if kept else '✨ 检测到闪光宝可梦（未捕获）'
-                self.script._send_feishu_card_with_image(
-                    title=title,
-                    image_key=image_key,
-                    content_dict=content
-                )
-            else:
-                self.script._send_feishu_webhook(
-                    msg_type='shiny',
-                    title='✨ 闪光宝可梦通知',
-                    content_dict={
-                        '闪光类型': '传说' if is_legendary else '非传说',
-                        '累计闪光数': self.script._shiny_count,
-                        '本轮次数': self.script.cycle_times,
-                        '详情': '请手动确认宝可梦（图片上传失败）'
-                    }
-                )
+            # 飞书内容
+            feishu_content = {
+            '闪光宝可梦类型': '传说宝可梦' if is_legendary else '非传说宝可梦',
+            '累计闪光数': f"{self.script._shiny_count}/{self.script._total_catch_count}",
+            '成功攻略次数': f"{self.script._win_count}/{self.script.cycle_times}",
+            '累计极矿石': self.script._dynite_ore_total,
+            }
+            title = '✨ 保留并捕获了闪光宝可梦！' if kept else '✨ 检测到闪光宝可梦（未捕获）'
+
+            # MeoW 内容
+            meow_content = f"累计闪光数：{self.script._shiny_count}/{self.script._total_catch_count}\n成功攻略次数：{self.script._win_count}/{self.script.cycle_times}\n累计极矿石：{self.script._dynite_ore_total}"
+
+            # 统一发送通知
+            self.script.send_notification(
+            title=title,
+            feishu_content=feishu_content,
+            image_path=screenshot_path,
+            meow_title=title,
+            meow_content=meow_content
+            )
+
+            self.script._trigger_obs_save('shiny_notification', is_legendary=is_legendary, kept=kept)
             os.remove(screenshot_path)
         except Exception as e:
             self.script.send_log(f"发送闪光通知失败: {e}")

@@ -17,7 +17,9 @@ import os
 import re
 import shutil
 from datetime import datetime
-CONFIG_PATH = "feishu_config.json"
+from urllib.parse import quote
+
+CONFIG_PATH = "config.json"
 # OBS WebSocket 可选依赖，在方法内部导入，避免强制要求安装
 
 
@@ -80,7 +82,7 @@ class BaseScript(ABC):
         # 上一帧获取时间
         self._last_set_frame_time_monotonic = 0
 
-        self._load_feishu_config()
+        self._load_config()
         self._feishu_token_info = {'access_token': None, 'expire_at': 0}
 
         
@@ -99,18 +101,48 @@ class BaseScript(ABC):
         self._invalid_cycle_count = 0
 
 
-    def _load_feishu_config(self):
+    def _load_config(self):
+        """加载所有第三方服务的配置文件"""
         default_config = {
-            'app_id': '',
-            'app_secret': '',
-            'chat_id': '',
-            'enable_notification': False,
+        "feishu": {
+            "app_id": "",
+            "app_secret": "",
+            "chat_id": "",
+            "enable_notification": False,
+            },
+        "meow": {
+            "device_id": "",
+            "api_base_url": "https://api.chuckfang.com",
+            "enable_notification": False,
+            },
+        "obs": {
+            "host": "127.0.0.1",
+            "port": 4455,
+            "password": "",
+            "enable": False,
+        },
         }
-        if os.path.exists(CONFIG_PATH):
-            with open(CONFIG_PATH, 'r') as f:
-                config = json.load(f)
-                default_config.update(config)
-        self._feishu_app_config = default_config
+        config_path = CONFIG_PATH
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r') as f:
+                    loaded_config = json.load(f)   # 先读取
+                    # 深度合并，避免覆盖嵌套结构
+                    for key in default_config:
+                        if key in loaded_config:
+                            if isinstance(default_config[key], dict):
+                                default_config[key].update(loaded_config[key])
+                            else:
+                                default_config[key] = loaded_config[key]
+                    # 如果 loaded_config 中有顶级不在 default_config 的键，也合并（可选）
+                    for key in loaded_config:
+                        if key not in default_config:
+                            default_config[key] = loaded_config[key]
+            except Exception as e:
+                self.send_log(f"读取配置文件失败: {e}")
+        self._feishu_app_config = default_config.get("feishu", default_config["feishu"])
+        self._meow_config = default_config.get("meow", default_config["meow"])
+        self._obs_config = default_config.get("obs", default_config["obs"])
     
     @abstractmethod
     def process_frame(self):
@@ -661,16 +693,101 @@ class BaseScript(ABC):
             self.send_log(f"飞书带图片卡片消息发送异常: {e}")
         return False
 
+    def _send_meow_notification(self, title, content):
+        """发送 MeoW 通知到华为鸿蒙设备"""
+        if not self._meow_config.get('enable_notification', True):
+            return False
+        device_id = self._meow_config.get('device_id')
+        if not device_id:
+            self.send_log("MeoW device_id 未配置，无法发送通知")
+            return False
+
+        # 特殊字符替换表（将可能导致问题的字符替换为全角或安全字符）
+        replace_map = {
+        '%': '％',   # 全角百分号
+        '&': '＆',   # 全角 &
+        '/': '／',   # 全角斜杠
+        '#': '＃',
+        '?': '？',
+        '\\': '＼',
+        }
+        for k, v in replace_map.items():
+            title = title.replace(k, v)
+            content = content.replace(k, v)
+
+        # 再使用 quote 编码其他可能的特殊字符（此时已经没有 % & / 等）
+        safe_title = quote(title, safe='')
+        safe_content = quote(content, safe='')
+
+        api_base_url = self._meow_config.get('api_base_url', 'https://api.chuckfang.com')
+        url = f"{api_base_url}/{device_id}/{safe_title}/{safe_content}"
+
+        try:
+            resp = requests.get(url, timeout=5)
+            if resp.status_code == 200:
+                self.send_log(f"MeoW 通知发送成功: {title}")
+                return True
+            else:
+                self.send_log(f"MeoW 通知发送失败: HTTP {resp.status_code}")
+        except Exception as e:
+            self.send_log(f"MeoW 通知发送异常: {e}")
+        return False
+
+    def send_notification(self, title, feishu_content, image_path=None, meow_title=None, meow_content=None):
+        """
+        统一发送飞书卡片消息（可选图片）和 MeoW 通知。
+
+        :param title: 通知标题（同时用于飞书和 MeoW 的标题，除非单独指定 meow_title）
+        :param feishu_content: 飞书卡片的内容字典（键值对格式，会自动显示在卡片中）
+        :param image_path: 可选，本地图片路径，若提供则发送带图片的飞书卡片
+        :param meow_title: 可选，MeoW 通知的标题，不提供则使用 title
+        :param meow_content: 可选，MeoW 通知的内容，不提供则自动从 feishu_content 生成
+        """
+        # 1. 发送飞书通知
+        if image_path and os.path.exists(image_path):
+            # 上传图片获取 image_key
+            image_key = self._upload_feishu_image(image_path)
+            if image_key:
+                self._send_feishu_card_with_image(title, image_key, feishu_content)
+            else:
+                # 图片上传失败，退化为普通卡片消息
+                self._send_feishu_webhook('custom', title, feishu_content)
+        else:
+            self._send_feishu_webhook('custom', title, feishu_content)
+
+        # 2. 发送 MeoW 通知（如果启用）
+        if self._meow_config.get('enable_notification', True):
+            if meow_title is None:
+                meow_title = title
+            if meow_content is None:
+                # 自动构造 MeoW 内容：
+                # 优先使用 feishu_content 中的 'details' 字段，
+                # 否则将除 'timestamp', 'run_time' 外的键值对拼接为 "key:value" 格式
+                if 'details' in feishu_content and feishu_content['details']:
+                    meow_content = str(feishu_content['details'])
+                else:
+                    parts = []
+                    for k, v in feishu_content.items():
+                        if k not in ('timestamp', 'run_time'):
+                            parts.append(f"{k}:{v}")
+                    meow_content = "\n".join(parts) if parts else "请查看飞书通知"
+                # 限制长度
+                meow_content = meow_content[:200]
+            self._send_meow_notification(meow_title, meow_content)
     # ==================== OBS 录制相关方法（通用） ====================
     def _obs_connect(self):
         """连接 OBS WebSocket 并注册事件，所有异常被捕获"""
+        if not self._obs_config.get('enable', True):
+            return
         if self._obs is not None:
             return
         try:
             from obswebsocket import obsws, events
             from obswebsocket import requests as obs_requests
-            # IPv6 地址直接使用，无需特殊处理
-            self._obs = obsws("127.0.0.1", 4455, "gpobrc8Rue20x09q")
+            host = self._obs_config.get('host', '127.0.0.1')
+            port = self._obs_config.get('port', 4455)
+            password = self._obs_config.get('password', '')
+            self._obs = obsws(host, port, password)
             self._obs.connect()
             self._obs_connected = True
             self._obs.register(self._on_replay_saved, events.ReplayBufferSaved)

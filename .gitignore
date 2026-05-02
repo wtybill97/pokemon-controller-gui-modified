@@ -11,7 +11,7 @@ yolo_training/data/images/**/temp
 runs
 src/tools
 img_champions
-feishu_config.json
+config.json
 ocr_fail_screenshots/
 .venv/
 /.png

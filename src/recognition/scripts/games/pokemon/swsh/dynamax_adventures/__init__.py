@@ -220,15 +220,17 @@ class SwshDynamaxAdventures(BaseScript):
             f"累计极矿石：{self._dynite_ore_total}\n"
             #f"累计捕获宝可梦：{self._total_catch_count}"
         )
-            # 发送飞书错误通知（增加计数信息）
-            self._send_feishu_webhook(
-                msg_type='script_error',
+            feishu_content = {
+                'error': error_msg,
+                'details': stats
+            }
+            self.send_notification(
                 title='⚠️ 极巨大冒险脚本异常停止',
-                content_dict={
-                    'error': error_msg,
-                    'details':stats
-                }
+                feishu_content=feishu_content,
+                meow_title="⚠️ 极巨大冒险脚本异常停止",
+                meow_content=f"{error_msg}\n{stats}"
             )
+            self._trigger_obs_save('error_stop', error=error_msg)
         run_time_span = self.run_time_span
         self.macro_stop(block=True)
         self.send_log("[{}] 脚本完成，已运行{}次，耗时{}小时{}分{}秒".format(SwshDynamaxAdventures.script_name(), self.cycle_times - 1, int(
@@ -294,20 +296,6 @@ class SwshDynamaxAdventures(BaseScript):
 
     def on_stop(self):
         run_time_span = self.run_time_span
-        '''
-        self._send_feishu_webhook(
-                msg_type='script_error',
-                title='⚠️ 极巨大冒险脚本停止，情况未知，请检查',
-                content_dict={
-                                'shiny_count': f"{self._shiny_count}/{self._total_catch_count}",
-                                #'cycle_times': self.cycle_times,
-                                'win_count': f"{self._win_count}/{self.cycle_times}",,
-                                'dynite_ore_total': self._dynite_ore_total,
-                                #'total_catch_count': self._total_catch_count,
-                            }
-                
-            )
-            '''
         self.send_log("[{}] 脚本停止，实际运行{}次，成功攻略大冒险{}次，带回闪光宝可梦{}只，累计极矿石{}，累计捕获宝可梦{}，耗时{}小时{}分{}秒".format(SwshDynamaxAdventures.script_name(
         ), self.cycle_times, self._win_count, self._shiny_count, self._dynite_ore_total, self._total_catch_count,
             int(run_time_span/3600), int((run_time_span % 3600) / 60), int(run_time_span % 60)))
@@ -574,35 +562,23 @@ class SwshDynamaxAdventures(BaseScript):
                     screenshot_path = f"shiny_{timestamp}.png"
                     cv2.imwrite(screenshot_path, self.current_frame_960x540)
                     self.send_log(f"闪光宝可梦截图已保存: {screenshot_path}")
-
-                    image_key = self._upload_feishu_image(screenshot_path)
-                    if image_key:
-                        content = {
-                            '闪光宝可梦类型': '传说宝可梦',
-                            '累计闪光数': f"{self._shiny_count}/{self._total_catch_count}",
-                            #'本轮次数': self.cycle_times,
-                            '成功攻略次数': f"{self._win_count}/{self.cycle_times}",
-                            '累计极矿石': self._dynite_ore_total,
-                            #'累计捕获宝可梦': self._total_catch_count
-                        }
-                        self._send_feishu_card_with_image(
-                            title='✨ 捕获到闪光传说宝可梦！',
-                            image_key=image_key,
-                            content_dict=content
-                        )
-                    else:
-                        self._send_feishu_webhook(
-                            msg_type='legendary_shiny',
-                            title='✨ 捕获到闪光传说宝可梦！',
-                            content_dict={
-                                'shiny_count': f"{self._shiny_count}/{self._total_catch_count}",
-                                #'cycle_times': self.cycle_times,
-                                'win_count': f"{self._win_count}/{self.cycle_times}",
-                                'dynite_ore_total': self._dynite_ore_total,
-                                #'total_catch_count': self._total_catch_count,
-                                'details': '请手动确认宝可梦（图片上传失败）'
-                            }
-                        )
+                    # 构造飞书内容字典
+                    feishu_content = {
+                        '闪光宝可梦类型': '传说宝可梦',
+                        '累计闪光数': f"{self._shiny_count}/{self._total_catch_count}",
+                        '成功攻略次数': f"{self._win_count}/{self.cycle_times}",
+                        '累计极矿石': self._dynite_ore_total,
+                    }
+                    
+                    # 统一发送通知
+                    self.send_notification(
+                        title='✨ 捕获到闪光传说宝可梦！',
+                        feishu_content=feishu_content,
+                        image_path=screenshot_path,
+                        meow_title="✨ 捕获到闪光传说宝可梦！",
+                        meow_content=f"累计闪光数: {self._shiny_count}/{self._total_catch_count}\n成功攻略次数: {self._win_count}/{self.cycle_times}\n累计极矿石: {self._dynite_ore_total}"
+                    )
+                    self._trigger_obs_save('legendary_shiny', shiny_count=self._shiny_count)
                     os.remove(screenshot_path)
                 except Exception as e:
                     self.send_log(f"发送闪光截图失败: {e}")
