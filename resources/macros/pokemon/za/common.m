@@ -8,18 +8,14 @@ A:0.1
 {12}?ns1
 7
 {
-    A:0.1
-    1
-}?ns1
-{
     TOP|X|B:0.1
     0.8
     A:0.05
-    0.3
+    0.5
     A:0.05
-    0.3
+    0.5
     A:0.05
-    0.3
+    0.5
     A:0.05
     8
 }?restore_backup
@@ -27,7 +23,7 @@ A:0.1
 A:0.1
 4
 }?(not|space|restore_backup)
-{20}?ns1
+{15}?ns1
 
 --重启宝可梦ZA--
 <restart_game--ns1|NS1|False>

@@ -6,6 +6,7 @@ from recognition.scripts.games.pokemon.swsh.battle_shiny import SwshBattleShiny
 from recognition.scripts.games.pokemon.swsh.dynamax_adventures import SwshDynamaxAdventures
 from recognition.scripts.games.pokemon.za.fossil import ZaFossil
 from recognition.scripts.games.pokemon.za.dlc.donut import ZaDlcDonut
+from recognition.scripts.games.pokemon.za.dlc.meltan import Meltan
 from recognition.scripts.games.pokemon.frlg.deoxys import FrlgDeoxys
 from recognition.scripts.games.pokemon.champions.teamid import ChampionsTeamID
 from recognition.scripts.games.pokemon.champions.usage import ChampionsUsage
@@ -20,6 +21,7 @@ def list_recognition_script():
         DQM3Synthesis.script_name(),
         ZaFossil.script_name(),
         ZaDlcDonut.script_name(),
+        Meltan.script_name(),
         FrlgDeoxys.script_name(),
         ChampionsTeamID.script_name(),
         ChampionsUsage.script_name(),
@@ -27,27 +29,29 @@ def list_recognition_script():
     return scripts
 
 
-def get_default_parameters(scritp_name: str) -> dict:
+def get_default_parameters(script_name: str) -> dict:
     paras = dict()
-    if scritp_name == SwshBattleShiny.script_name():
+    if script_name == SwshBattleShiny.script_name():
         paras = SwshBattleShiny.script_paras()
-    elif scritp_name == SwshDynamaxAdventures.script_name():
+    elif script_name == SwshDynamaxAdventures.script_name():
         paras = SwshDynamaxAdventures.script_paras()
-    elif scritp_name == SVEggs.script_name():
+    elif script_name == SVEggs.script_name():
         paras = SVEggs.script_paras()
-    elif scritp_name == SvTeraRaidGimmighoul.script_name():
+    elif script_name == SvTeraRaidGimmighoul.script_name():
         paras = SvTeraRaidGimmighoul.script_paras()
-    elif scritp_name == DQM3Synthesis.script_name():
+    elif script_name == DQM3Synthesis.script_name():
         paras = DQM3Synthesis.script_paras()
-    elif scritp_name == ZaFossil.script_name():
+    elif script_name == ZaFossil.script_name():
         paras = ZaFossil.script_paras()
-    elif scritp_name == ZaDlcDonut.script_name():
+    elif script_name == ZaDlcDonut.script_name():
         paras = ZaDlcDonut.script_paras()
-    elif scritp_name == FrlgDeoxys.script_name():
+    elif script_name == Meltan.script_name():     # 新增
+        paras = Meltan.script_paras()
+    elif script_name == FrlgDeoxys.script_name():
         paras = FrlgDeoxys.script_paras()
-    elif scritp_name == ChampionsTeamID.script_name():
+    elif script_name == ChampionsTeamID.script_name():
         paras = ChampionsTeamID.script_paras()
-    elif scritp_name == ChampionsUsage.script_name():
+    elif script_name == ChampionsUsage.script_name():
         paras = ChampionsUsage.script_paras()
     else:
         pass
@@ -77,6 +81,9 @@ def run(script_name, stop_event: multiprocessing.Event, frame_queue: multiproces
     elif script_name == ZaDlcDonut.script_name():
         script = ZaDlcDonut(stop_event, frame_queue,
                             controller_input_action_queue, paras)
+    elif script_name == Meltan.script_name():
+        script = Meltan(stop_event, frame_queue,
+                        controller_input_action_queue, paras)
     elif script_name == FrlgDeoxys.script_name():
         script = FrlgDeoxys(stop_event, frame_queue,
                             controller_input_action_queue, paras)

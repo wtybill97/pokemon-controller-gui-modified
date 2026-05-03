@@ -4,7 +4,7 @@ from recognition.scripts.base.base_sub_step import BaseSubStep, SubStepRunningSt
 import cv2
 from datetime import datetime
 import os
-
+from rapidocr_onnxruntime import RapidOCR as RapidOCREngine
 from recognition.scripts.games.pokemon.swsh.common.image_match.pokemon_detail_shiny_match import PokemonDetailShinyMatch
 
 
@@ -27,6 +27,14 @@ class SWSHDAShinyKeep(BaseSubStep):
         self._keep_pokemon_label_template = cv2.cvtColor(
             self._keep_pokemon_label_template, cv2.COLOR_BGR2GRAY)
 
+    _rapid_ocr = None   # 新增类变量
+
+    @classmethod
+    def _get_ocr(cls):
+        if cls._rapid_ocr is None:
+            cls._rapid_ocr = RapidOCREngine(upscale=3.0, enable_preprocess=True)
+        return cls._rapid_ocr
+    
     @property
     def kept_result(self) -> SWSHDAShinyKeepResult:
         return self._kept_result
@@ -79,10 +87,11 @@ class SWSHDAShinyKeep(BaseSubStep):
                 self.script.macro_text_run("CAPTURE:1", block=True)
                 if self._check_counter == 0:
                     # 传说闪光
+                    pokemon_name = self._ocr_pokemon_name(current_frame_960x540)
                     if penalty_limit:
                         # 惩罚上限：放弃传说闪光，不保留，不停止脚本
                         self.script.send_log("极矿石惩罚已达上限，放弃闪光传说宝可梦，继续下一轮")
-                        self._send_shiny_notification(is_legendary=True, kept=False)
+                        self._send_shiny_notification(is_legendary=True, kept=False, pokemon_name=pokemon_name) 
                         self._quit_pokemon_detail()
                         self._not_keep()  # 放弃
                         
@@ -90,15 +99,17 @@ class SWSHDAShinyKeep(BaseSubStep):
                         return
                     else:
                         # 正常情况：保留传说闪光
+                        self._send_shiny_notification(is_legendary=True, kept=True, pokemon_name=pokemon_name)
                         self._quit_pokemon_detail()
                         self._keep()  # 内部设置 KeptLegendary
                         self._process_step_index += 1
                         return
                 else:
                     # 非传说闪光：记录计数和通知，但不保留
+                    pokemon_name = self._ocr_pokemon_name(current_frame_960x540)
                     self.script._shiny_count += 1
                     self.script.send_log(f"检测到非传说闪光宝可梦（第{self._check_counter+1}只），累计闪光数: {self.script._shiny_count}")
-                    self._send_shiny_notification(is_legendary=False, kept=False)
+                    self._send_shiny_notification(is_legendary=False, kept=False, pokemon_name=pokemon_name)
                     self._move_to_next_pokemon()
                     # 修改点：如果已经检查完所有非传说宝可梦（_check_counter >= 3），则结束检查
                     if self._check_counter >= 3:
@@ -120,11 +131,12 @@ class SWSHDAShinyKeep(BaseSubStep):
             # 传说未捕获的情况：遍历所有宝可梦，寻找闪光，保留第一个闪光，否则放弃
             if is_shiny:
                 self.script.macro_text_run("CAPTURE:1", block=True)
+                pokemon_name = self._ocr_pokemon_name(current_frame_960x540)
                 # 发现闪光宝可梦（普通宝可梦）
                 self.script._shiny_count += 1
                 self.script.send_log(
                     f"检测到闪光宝可梦（第{self._check_counter + 1}只），累计闪光数: {self.script._shiny_count}")
-                self._send_shiny_notification(is_legendary=False, kept=True)
+                self._send_shiny_notification(is_legendary=False, kept=True, pokemon_name=pokemon_name)   # 修改
                 # 保留该闪光宝可梦
                 self._quit_pokemon_detail()
                 self._keep()  # 保留，kept_result = Kept
@@ -148,7 +160,27 @@ class SWSHDAShinyKeep(BaseSubStep):
             self.script.macro_text_run("TOP:0.1", block=True)
             self.time_sleep(0.5)
 
-    def _send_shiny_notification(self, is_legendary: bool = False, kept: bool = False):
+    def _ocr_pokemon_name(self, frame_bgr) -> str:
+        """
+        从当前帧中裁剪指定区域并识别宝可梦名称
+        区域: (x=530, y=22, width=180, height=42)  (960x540分辨率)
+        """
+        x, y, w, h = 530, 22, 180, 42
+        roi = frame_bgr[y:y+h, x:x+w].copy()
+        if roi is None or roi.size == 0:
+            return "未知"
+        ocr = self._get_ocr()
+        # 调用 recognize_single_roi，返回 (text, score, raw_text)
+        text, score, _ = ocr.recognize_single_roi(roi, (0, 0, w, h), preprocess=True, return_raw=True)
+        if text is None:
+            return "未知"
+        # 去除空白字符
+        name = "".join(text.split())
+        # 可选：进一步清理常见OCR错误
+        name = name.replace(" ", "").replace("　", "")
+        return name if name else "未知"
+    
+    def _send_shiny_notification(self, is_legendary: bool = False, kept: bool = False, pokemon_name: str = ""):
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             screenshot_path = f"shiny_{timestamp}.png"
@@ -157,23 +189,24 @@ class SWSHDAShinyKeep(BaseSubStep):
 
             # 飞书内容
             feishu_content = {
-            '闪光宝可梦类型': '传说宝可梦' if is_legendary else '非传说宝可梦',
-            '累计闪光数': f"{self.script._shiny_count}/{self.script._total_catch_count}",
-            '成功攻略次数': f"{self.script._win_count}/{self.script.cycle_times}",
-            '累计极矿石': self.script._dynite_ore_total,
+                '闪光宝可梦类型': '传说宝可梦' if is_legendary else '非传说宝可梦',
+                '宝可梦名称': pokemon_name,      # 新增
+                '累计闪光数': f"{self.script._shiny_count}/{self.script._total_catch_count}",
+                '成功攻略次数': f"{self.script._win_count}/{self.script.cycle_times}",
+                '累计极矿石': self.script._dynite_ore_total,
             }
             title = '✨ 保留并捕获了闪光宝可梦！' if kept else '✨ 检测到闪光宝可梦（未捕获）'
 
             # MeoW 内容
-            meow_content = f"累计闪光数：{self.script._shiny_count}/{self.script._total_catch_count}\n成功攻略次数：{self.script._win_count}/{self.script.cycle_times}\n累计极矿石：{self.script._dynite_ore_total}"
+            meow_content = f"宝可梦：{pokemon_name}\n累计闪光数：{self.script._shiny_count}/{self.script._total_catch_count}\n成功攻略次数：{self.script._win_count}/{self.script.cycle_times}\n累计极矿石：{self.script._dynite_ore_total}"
 
             # 统一发送通知
             self.script.send_notification(
-            title=title,
-            feishu_content=feishu_content,
-            image_path=screenshot_path,
-            meow_title=title,
-            meow_content=meow_content
+                title=title,
+                feishu_content=feishu_content,
+                image_path=screenshot_path,
+                meow_title=title,
+                meow_content=meow_content
             )
 
             self.script._trigger_obs_save('shiny_notification', is_legendary=is_legendary, kept=kept)

@@ -1,0 +1,12 @@
+--美录坦--
+<meltan>
+body:
+LStick@0,-127:0.5
+7
+A:0.1
+12.5
+LStick@0,-127:0.1->LStick@0,-127|B:0.1->LStick@0,-127:0.1
+ZR:0.1
+ZR|LEFT:0.1
+ZL|ZR:0.1
+14
