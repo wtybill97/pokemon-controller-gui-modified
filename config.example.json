@@ -9,5 +9,11 @@
         "device_id": "your_device_id_here",
         "api_base_url": "https://api.chuckfang.com",
         "enable_notification": true
+    },
+    "obs": {
+        "host": "127.0.0.1",
+        "port": 4455,
+        "password": "your_obs_password_here",
+        "enable": true
     }
 }

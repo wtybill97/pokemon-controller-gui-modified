@@ -1,6 +1,11 @@
-# meltan.py
-# 放置在 recognition/scripts/games/pokemon/za/dlc/meltan.py
-# 脚本逻辑：重启游戏 → 执行美录坦捕捉宏 → 检测特定区域文字，识别到"你替我捉住"即成功并停止
+# beastball.py
+# 放置在 recognition/scripts/games/pokemon/za/dlc/beastball.py
+# 脚本逻辑：重启游戏 → 执行对应宝可梦的捕捉宏 → 检测特定区域文字，识别到指定字符串即成功并停止
+# 参数 pokemon_type: "玛夏多" 或 "美录坦" 或 "波尔凯尼恩"（下拉菜单选择）
+# 参数 ball_type: 球种名称（下拉菜单选择）
+# 美录坦：路卡利欧近身战A秒杀后捕捉
+# 玛夏多：命玉X鹿月爆A仙闪X月爆A大概率击杀后捕捉（取决于是否有暗影偷盗躲技能）
+# 波尔凯尼恩：命玉X鹿强化十万伏特A*3大概率击杀后捕捉
 
 from enum import Enum
 import multiprocessing
@@ -12,16 +17,36 @@ import numpy as np
 from recognition.ocr.rapidocr import RapidOCR
 from datetime import datetime
 
-class Meltan(BaseScript):
+# 球种名称到数值的映射
+BALLS = {
+    "究极球": 1,
+    "狩猎球": 2,
+    "竞赛球": 3,
+    "梦境球": 4,
+    "月亮球": 5,
+    "甜蜜球": 6,
+    "沉重球": 7,
+    "等级球": 8,
+    "诱饵球": 9,
+    "友友球": 10,
+    "速度球": 11,
+}
+
+class PokemonCatch(BaseScript):
+    @staticmethod
+    def script_name() -> str:
+        return "宝可梦-ZA-DLC-幻兽球种"
+
     def __init__(self, stop_event: multiprocessing.Event, frame_queue: multiprocessing.Queue,
                  controller_input_action_queue: multiprocessing.Queue, paras: dict = None):
-        super().__init__(Meltan.script_name(), stop_event,
-                         frame_queue, controller_input_action_queue, Meltan.script_paras())
+        # 使用固定脚本名初始化父类（不包含宝可梦名称）
+        super().__init__(self.script_name(), stop_event,
+                         frame_queue, controller_input_action_queue, PokemonCatch.script_paras())
         self._prepare_step_index = -1
         self._cycle_step_index = -1
         self._jump_next_frame = False
 
-        # 默认参数
+        # 默认参数（会在 set_paras 后生效）
         self._loop = self.get_para("loop")
         self._durations = self.get_para("durations")
         self._ns1 = self.get_para("ns1") if paras and "ns1" in paras else False
@@ -32,28 +57,75 @@ class Meltan(BaseScript):
             enable_preprocess=True,
         )
 
-        # 目标文字（子串匹配）
-        self._target_substring = "你替我捉住"
+        # 待初始化的属性（将在 on_start 中通过 get_para 设置）
+        self._pokemon_display_name = None
+        self._pokemon_type = None
+        self._target_substring = None
+        self._ocr_region = None
+        self._macro_name = None
+        self._success_title = None
+        self._obs_save_title = None
+        self._meow_content_prefix = None
+        self._ball_name = None      # 球种名称（用于日志）
+        self._ball_value = 1     # 球种数值（传递给宏）
 
-        # 成功标志（成功一次即停止）
         self._success = False
 
         self.set_paras(paras)
 
-    @staticmethod
-    def script_name() -> str:
-        return "宝可梦-ZA-DLC-美录坦"
+    def _convert_display_to_internal(self, display_name: str) -> str:
+        """将显示名（中文）转换为内部标识"""
+        if display_name == "美录坦":
+            return "meltan"
+        elif display_name == "玛夏多":
+            return "marshadow"
+        elif display_name == "波尔凯尼恩":
+            return "volcanion"
+        else:
+            # 默认返回 marshadow
+            return "marshadow"
+
 
     @staticmethod
     def script_paras() -> dict:
         paras = dict()
-        paras["loop"] = ScriptParameter(
-            "loop", int, -1, "运行次数（-1表示无限）")
-        paras["durations"] = ScriptParameter(
-            "durations", float, -1, "运行时长（分钟）")
-        paras["ns1"] = ScriptParameter(
-            "ns1", bool, True, "是否使用NS1")
+        paras["loop"] = ScriptParameter("loop", int, -1, "运行次数（-1表示无限）")
+        paras["durations"] = ScriptParameter("durations", float, -1, "运行时长（分钟）")
+        paras["ns1"] = ScriptParameter("ns1", bool, True, "是否使用NS1")
+        # 宝可梦类型下拉菜单
+        paras["pokemon_type"] = ScriptParameter(
+            "pokemon_type", str, "波尔凯尼恩", "宝可梦类型", ["玛夏多", "美录坦", "波尔凯尼恩"]
+        )
+        # 球种下拉菜单：选项为球种名称列表，参数类型为字符串，内部再转换为数值
+        ball_names = list(BALLS.keys())
+        paras["ball_type"] = ScriptParameter(
+            "ball_type", str, "究极球", "选择球种", ball_names
+        )
         return paras
+    
+    def _setup_by_pokemon(self):
+        """根据宝可梦类型配置识别文字、区域、宏名称等"""
+        if self._pokemon_type == "meltan":
+            self._target_substring = "你替我捉住"
+            self._ocr_region = (534, 941, 534, 60)
+            self._macro_name = "recognition.pokemon.za.dlc.meltan.meltan"
+            self._success_title = f"✅ 成功用{self._ball_name}捕捉{self._pokemon_display_name}！"
+            self._obs_save_title = self._pokemon_display_name
+            self._meow_content_prefix = "识别文字"
+        elif self._pokemon_type == "marshadow":
+            self._target_substring = "原来如此"
+            self._ocr_region = (536, 876, 408, 56)
+            self._macro_name = "recognition.pokemon.za.dlc.marshadow.marshadow"
+            self._success_title = f"✅ 成功用{self._ball_name}捕捉{self._pokemon_display_name}！"
+            self._obs_save_title = self._pokemon_display_name
+            self._meow_content_prefix = "识别文字"
+        elif self._pokemon_type == "volcanion":
+            self._target_substring = "漂亮地捉住"
+            self._ocr_region = (533, 942, 574, 56)
+            self._macro_name = "recognition.pokemon.za.dlc.volcanion.volcanion"
+            self._success_title = f"✅ 成功用{self._ball_name}捕捉{self._pokemon_display_name}！"
+            self._obs_save_title = self._pokemon_display_name
+            self._meow_content_prefix = "识别文字"
 
     # ---------- 主流程 ----------
     def process_frame(self):
@@ -93,17 +165,27 @@ class Meltan(BaseScript):
     def on_start(self):
         self._prepare_step_index = 0
         self._script_start_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.send_log(f"开始运行 {Meltan.script_name()} 脚本")
+        # 获取宝可梦类型
+        self._pokemon_display_name = self.get_para("pokemon_type")
+        self._pokemon_type = self._convert_display_to_internal(self._pokemon_display_name)
+        self._setup_by_pokemon()
+        # 获取球种
+        self._ball_name = self.get_para("ball_type")
+        self._ball_value = BALLS.get(self._ball_name, 1)  # 默认究极球
+        full_name = f"{self.script_name()}-{self._ball_name}-{self._pokemon_display_name}"
+        self.send_log(f"开始运行 {full_name} 脚本")
 
     def on_cycle(self):
         run_time_span = self.run_time_span
-        log_txt = (f"[{Meltan.script_name()}] 脚本运行中，已运行 {self.cycle_times} 轮，耗时 "
+        full_name = f"{self.script_name()}-{self._ball_name}-{self._pokemon_display_name}"
+        log_txt = (f"[{full_name}] 脚本运行中，已运行 {self.cycle_times} 轮，耗时 "
                    f"{int(run_time_span/3600)}小时{int((run_time_span % 3600)/60)}分{int(run_time_span % 60)}秒")
         self.send_log(log_txt)
 
     def on_stop(self):
         run_time_span = self.run_time_span
-        self.send_log(f"[{Meltan.script_name()}] 脚本停止，"
+        full_name = f"{self.script_name()}-{self._ball_name}-{self._pokemon_display_name}"
+        self.send_log(f"[{full_name}] 脚本停止，"
                       f"总运行时间：{int(run_time_span/3600)}小时{int((run_time_span % 3600)/60)}分{int(run_time_span % 60)}秒")
 
     def on_error(self):
@@ -124,19 +206,17 @@ class Meltan(BaseScript):
         pass
 
     def _finished_process(self):
-        """成功捕获后停止脚本"""
         run_time_span = self.run_time_span
         self.macro_stop(block=True)
-        self.macro_run("common.switch_sleep",
-                       loop=1, paras={"ns1": str(self._ns1)}, block=True, timeout=10)
-        self.send_log(f"[{Meltan.script_name()}] 脚本完成，"
+        full_name = f"{self.script_name()}-{self._ball_name}-{self._pokemon_display_name}"
+        self.send_log(f"[{full_name}] 脚本完成，"
                       f"已运行 {self.cycle_times - 1} 轮，"
-                      f"耗时 {int(run_time_span/3600)}h {int((run_time_span % 3600)/60)}m {int(run_time_span % 60)}s")
+                      f"耗时 {int(run_time_span/3600)}小时{int((run_time_span % 3600)/60)}分{int(run_time_span % 60)}秒")
         self.stop_work()
 
     # ---------- 步骤实现 ----------
     def step_0(self):
-        """1. 重启游戏（不恢复备份）  2. 执行美录坦捕捉宏"""
+        """重启游戏并执行对应宝可梦的捕捉宏"""
         self.macro_run("pokemon.za.common.restart_game",
                        loop=1,
                        paras={"ns1": str(self._ns1), "restore_backup": False},
@@ -145,33 +225,33 @@ class Meltan(BaseScript):
         time.sleep(0.1)
         current_frame = self.current_frame
         if current_frame is not None:
-            error_region = (380, 300, 130, 42)   # x, y, w, h
+            error_region = (380, 300, 130, 42)
             error_results = self.ocr_engine.batch_recognize_regions(current_frame, [error_region])
             error_text = ""
             if error_results and len(error_results) > 0:
                 text_obj = error_results[0]
                 if text_obj and isinstance(text_obj, dict):
-                    error_text = text_obj.get('text', "")
-                    if error_text is None:
-                        error_text = ""
+                    error_text = text_obj.get('text', "") or ""
                     error_text = error_text.strip()
             if error_text and "发生错误" in error_text:
                 self.send_log(f"❌ 检测到错误文本：{error_text}，脚本停止")
                 error_content = {"reason": "switch发生错误，已黑屏", "ocr_text": error_text}
                 self.send_notification(
-                title='⚠️ 脚本异常停止',
-                feishu_content=error_content,
-                meow_title="⚠️ 脚本异常停止",
-                meow_content=f"switch发生错误，已黑屏\n识别文本：{error_text}"
+                    title='⚠️ 脚本异常停止',
+                    feishu_content=error_content,
+                    meow_title="⚠️ 脚本异常停止",
+                    meow_content=f"switch发生错误，已黑屏\n识别文本：{error_text}"
                 )
                 self._finished_process()
                 return
 
-        self.macro_run("recognition.pokemon.za.dlc.meltan.meltan",
+        # 调用捕捉宏，并传递球种参数
+        macro_paras = {"number": self._ball_value}  # 假设宏需要的参数名为 "ball"
+        self.macro_run(self._macro_name,
                        loop=1,
+                       paras=macro_paras,
                        block=True,
                        timeout=None)
-
         self._jump_next_frame = True
         self._cycle_step_index += 1
 
@@ -183,50 +263,40 @@ class Meltan(BaseScript):
             self._cycle_step_index += 1
             return
 
-        region = (534, 941, 534, 60)
-        x, y, w, h = region
+        x, y, w, h = self._ocr_region
         roi = current_frame[y:y+h, x:x+w]
         if roi.size == 0:
-            self.send_log(f"裁剪区域无效: {region}")
+            self.send_log(f"裁剪区域无效: {self._ocr_region}")
             self._cycle_step_index += 1
             return
 
-        # 使用 batch_recognize_regions 识别该区域
-        results = self.ocr_engine.batch_recognize_regions(current_frame, [region])
+        results = self.ocr_engine.batch_recognize_regions(current_frame, [self._ocr_region])
         recognized_text = ""
         if results and len(results) > 0:
             text_obj = results[0]
             if text_obj and isinstance(text_obj, dict):
-                recognized_text = text_obj.get('text', "")
-                if recognized_text is None:
-                    recognized_text = ""
+                recognized_text = text_obj.get('text', "") or ""
                 recognized_text = recognized_text.strip()
         self.send_log(f"OCR 识别结果: {recognized_text}")
 
-        # 若识别到目标文字
         if self._target_substring in recognized_text:
             self._success = True
             self.send_log(f"✅ 成功识别到目标文字！停止脚本")
             self.macro_run("recognition.pokemon.za.dlc.donut.capture", loop=1, block=True, timeout=None)
-            # 发送通知
-            success_content = {
-                "recognized_text": recognized_text,
-                "region": region,
-                "recipe": "美录坦捕捉"
-            }
+            success_content = {"识别文本": recognized_text}
             self.send_notification(
-                title="✅ 美录坦捕捉成功",
+                title=self._success_title,
                 feishu_content=success_content,
-                meow_title="🎉 美录坦捕捉成功",
-                meow_content=f"识别文字：{recognized_text}"
+                meow_title=self._success_title,
+                meow_content=f"{self._meow_content_prefix}：{recognized_text}"
             )
-
+            self._trigger_obs_save(self._pokemon_type, title=self._obs_save_title, cycle_times=self.cycle_times)
             self._finished_process()
         else:
             self.send_log("未识别到目标文字，重新开始循环")
-            self._cycle_step_index += 1  # 进入下一轮循环
+            self._cycle_step_index += 1
 
-    # ---------- 辅助检查方法 ----------
+    # ---------- 辅助检查 ----------
     def _check_durations(self):
         if self._durations <= 0:
             return False

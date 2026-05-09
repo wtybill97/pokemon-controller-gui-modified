@@ -4,7 +4,7 @@ from recognition.scripts.base.base_sub_step import BaseSubStep, SubStepRunningSt
 import cv2
 from datetime import datetime
 import os
-from rapidocr_onnxruntime import RapidOCR as RapidOCREngine
+from recognition.ocr.rapidocr import RapidOCR
 from recognition.scripts.games.pokemon.swsh.common.image_match.pokemon_detail_shiny_match import PokemonDetailShinyMatch
 
 
@@ -15,6 +15,14 @@ class SWSHDAShinyKeepResult(Enum):
 
 
 class SWSHDAShinyKeep(BaseSubStep):
+    _rapid_ocr = None
+
+    @classmethod
+    def _get_ocr(cls):
+        if cls._rapid_ocr is None:
+            cls._rapid_ocr = RapidOCR(upscale=3.0, enable_preprocess=True)
+        return cls._rapid_ocr
+
     def __init__(self, script: BaseScript, legendary_caught: bool, only_keep_shiny_legendary: bool = False, timeout: float = -1) -> None:
         super().__init__(script, timeout)
         self._legendary_caught = legendary_caught
@@ -27,14 +35,6 @@ class SWSHDAShinyKeep(BaseSubStep):
         self._keep_pokemon_label_template = cv2.cvtColor(
             self._keep_pokemon_label_template, cv2.COLOR_BGR2GRAY)
 
-    _rapid_ocr = None   # 新增类变量
-
-    @classmethod
-    def _get_ocr(cls):
-        if cls._rapid_ocr is None:
-            cls._rapid_ocr = RapidOCREngine(upscale=3.0, enable_preprocess=True)
-        return cls._rapid_ocr
-    
     @property
     def kept_result(self) -> SWSHDAShinyKeepResult:
         return self._kept_result
@@ -94,7 +94,6 @@ class SWSHDAShinyKeep(BaseSubStep):
                         self._send_shiny_notification(is_legendary=True, kept=False, pokemon_name=pokemon_name) 
                         self._quit_pokemon_detail()
                         self._not_keep()  # 放弃
-                        
                         self._process_step_index += 1
                         return
                     else:
@@ -136,7 +135,7 @@ class SWSHDAShinyKeep(BaseSubStep):
                 self.script._shiny_count += 1
                 self.script.send_log(
                     f"检测到闪光宝可梦（第{self._check_counter + 1}只），累计闪光数: {self.script._shiny_count}")
-                self._send_shiny_notification(is_legendary=False, kept=True, pokemon_name=pokemon_name)   # 修改
+                self._send_shiny_notification(is_legendary=False, kept=True, pokemon_name=pokemon_name)
                 # 保留该闪光宝可梦
                 self._quit_pokemon_detail()
                 self._keep()  # 保留，kept_result = Kept
@@ -166,19 +165,21 @@ class SWSHDAShinyKeep(BaseSubStep):
         区域: (x=530, y=22, width=180, height=42)  (960x540分辨率)
         """
         x, y, w, h = 530, 22, 180, 42
-        roi = frame_bgr[y:y+h, x:x+w].copy()
-        if roi is None or roi.size == 0:
-            return "未知"
-        ocr = self._get_ocr()
-        # 调用 recognize_single_roi，返回 (text, score, raw_text)
-        text, score, _ = ocr.recognize_single_roi(roi, (0, 0, w, h), preprocess=True, return_raw=True)
-        if text is None:
-            return "未知"
-        # 去除空白字符
-        name = "".join(text.split())
-        # 可选：进一步清理常见OCR错误
-        name = name.replace(" ", "").replace("　", "")
-        return name if name else "未知"
+        # 使用 batch_recognize_regions 识别该区域
+        results = self._get_ocr().batch_recognize_regions(frame_bgr, [(x, y, w, h)])
+        if results and len(results) > 0:
+            text_obj = results[0]
+            if text_obj and isinstance(text_obj, dict):
+                recognized_text = text_obj.get('text', "")
+                if recognized_text is None:
+                    recognized_text = ""
+                recognized_text = recognized_text.strip()
+                if recognized_text:
+                    # 去除空白字符
+                    name = "".join(recognized_text.split())
+                    name = name.replace(" ", "").replace("　", "")
+                    return name if name else "未知"
+        return "未知"
     
     def _send_shiny_notification(self, is_legendary: bool = False, kept: bool = False, pokemon_name: str = ""):
         try:
