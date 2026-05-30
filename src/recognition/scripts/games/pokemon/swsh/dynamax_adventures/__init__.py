@@ -55,6 +55,8 @@ class SWSHDAWhenRestart(Enum):
     NotShinyLegendary_And_WonLegendary = "传说未闪光，击败传说宝可梦重启(寻找最佳路线)"
     FindCatchLegendaryBestRoad_And_NotShinyLegendary = "寻找击败传说宝可梦最佳路线，找到最佳路线后传说宝可梦未闪光重启"
     NotShinyLegendary = "传说宝可梦未闪光重启(已确认最佳路线)"
+    # 新增选项
+    KeepAnyShiny_And_LimitRestart = f"遇到任意闪光即保留，未闪光且击败传说宝可梦则重启（极矿石惩罚超过{DYNITE_ORE_PENALTY_LIMIT}时限制重启）"
 
 
 class SwshDynamaxAdventures(BaseScript):
@@ -76,7 +78,13 @@ class SwshDynamaxAdventures(BaseScript):
         self._total_catch_count = 0         # 累计捕获宝可梦总数（包括小怪和传说）
         # ------------------------------------------
 
+        self._captured_shiny_map = {}
+        self._apricorn_balls = ["究极球", "甜蜜球","月亮球", "诱饵球", "速度球",  
+                                "友友球", "等级球", "沉重球", "竞赛球", "狩猎球"]
+
+
         self.set_paras(paras)
+
 
         
 
@@ -113,11 +121,11 @@ class SwshDynamaxAdventures(BaseScript):
             self.get_para(
             "disable_dynamax_3") if "disable_dynamax_3" in paras else True,#默认禁用第三场极巨化
             self.get_para("disable_dynamax_4") if "disable_dynamax_4" in paras else False]
-        catch_ball_value = [self.get_para("catch_ball_1") if "catch_ball_1" in paras else SWSHDABallType.PokeBall.value,
+        catch_ball_value = [self.get_para("catch_ball_1") if "catch_ball_1" in paras else SWSHDABallType.BeastBall.value,
                             self.get_para(
-                                "catch_ball_2") if "catch_ball_2" in paras else SWSHDABallType.PokeBall.value,
+                                "catch_ball_2") if "catch_ball_2" in paras else SWSHDABallType.BeastBall.value,
                             self.get_para(
-                                "catch_ball_3") if "catch_ball_3" in paras else SWSHDABallType.PokeBall.value,
+                                "catch_ball_3") if "catch_ball_3" in paras else SWSHDABallType.BeastBall.value,
                             self.get_para("catch_ball_4") if "catch_ball_4" in paras else SWSHDABallType.BeastBall.value]
         self._catch_ball = [SWSHDABallType(value)
                             for value in catch_ball_value]
@@ -140,7 +148,7 @@ class SwshDynamaxAdventures(BaseScript):
         paras["only_keep_shiny_legendary"] = ScriptParameter(
             "only_keep_shiny_legendary", bool, "False", "只带走闪光传说宝可梦", ["False", "True"])
         paras["not_keep_restart"] = ScriptParameter(
-            "not_keep_restart", str, SWSHDAWhenRestart.NotShiny_And_WonLegendary_Limit_Restart.value, "重启游戏选项（有极矿石惩罚）", [e.value for e in SWSHDAWhenRestart])
+            "not_keep_restart", str, SWSHDAWhenRestart.KeepAnyShiny_And_LimitRestart.value, "重启游戏选项（有极矿石惩罚）", [e.value for e in SWSHDAWhenRestart])
         paras["secondary"] = ScriptParameter(
             "secondary", bool, "False", "副设备", ["False", "True"])
 
@@ -154,7 +162,7 @@ class SwshDynamaxAdventures(BaseScript):
         paras["disable_dynamax_1"] = ScriptParameter(
             "disable_dynamax_1", bool, "False", "战斗1 禁用极巨化", ["False", "True"])
         paras["catch_ball_1"] = ScriptParameter(
-            "catch_ball_1", str, SWSHDABallType.PokeBall.value, "战斗1 捕捉球种", [e.value for e in SWSHDABallType])
+            "catch_ball_1", str, SWSHDABallType.BeastBall.value, "战斗1 捕捉球种", [e.value for e in SWSHDABallType])
         paras["switch_pokemon_1"] = ScriptParameter(
             "switch_pokemon_1", bool, "True", "战斗1 是否更换使用宝可梦（未捕捉跳过此步骤）", ["False", "True"])
 
@@ -165,7 +173,7 @@ class SwshDynamaxAdventures(BaseScript):
         paras["disable_dynamax_2"] = ScriptParameter(
             "disable_dynamax_2", bool, "False", "战斗2 禁用极巨化", ["False", "True"])
         paras["catch_ball_2"] = ScriptParameter(
-            "catch_ball_2", str, SWSHDABallType.PokeBall.value, "战斗2 捕捉球种", [e.value for e in SWSHDABallType])
+            "catch_ball_2", str, SWSHDABallType.BeastBall.value, "战斗2 捕捉球种", [e.value for e in SWSHDABallType])
         paras["switch_pokemon_2"] = ScriptParameter(
             "switch_pokemon_2", bool, "True", "战斗2 是否更换使用宝可梦（未捕捉跳过此步骤）", ["False", "True"])
         paras["path_leave_event_2"] = ScriptParameter(
@@ -178,7 +186,7 @@ class SwshDynamaxAdventures(BaseScript):
         paras["disable_dynamax_3"] = ScriptParameter(
             "disable_dynamax_3", bool, "True", "战斗3 禁用极巨化", ["False", "True"])#默认战斗3禁用极巨化
         paras["catch_ball_3"] = ScriptParameter(
-            "catch_ball_3", str, SWSHDABallType.PokeBall.value, "战斗3 捕捉球种", [e.value for e in SWSHDABallType])
+            "catch_ball_3", str, SWSHDABallType.BeastBall.value, "战斗3 捕捉球种", [e.value for e in SWSHDABallType])
         paras["switch_pokemon_3"] = ScriptParameter(
             "switch_pokemon_3", bool, "True", "战斗3 是否更换使用宝可梦（未捕捉跳过此步骤）", ["False", "True"])
         paras["path_leave_event_3"] = ScriptParameter(
@@ -188,6 +196,8 @@ class SwshDynamaxAdventures(BaseScript):
             "disable_dynamax_4", bool, "False", "Boss战 禁用极巨化", ["False", "True"])
         paras["catch_ball_4"] = ScriptParameter(
             "catch_ball_4", str, SWSHDABallType.BeastBall.value, "BOSS战 捕捉球种", [e.value for e in SWSHDABallType])
+        paras["only_use_apricorn_balls"] = ScriptParameter(
+            "only_use_apricorn_balls", bool, True, "是否只使用柑果球捕获（若已捕获过则换球）", ["True", "False"])
         return paras
 
     def _check_durations(self):
@@ -272,6 +282,7 @@ class SwshDynamaxAdventures(BaseScript):
     def on_start(self):
         self._prepare_step_index = 0
         self.send_log(f"开始运行{SwshDynamaxAdventures.script_name()}脚本")
+        self._init_captured_shiny_map()
         if self._restart_flag == SWSHDAWhenRestart.FindCatchLegendaryBestRoad_And_NotShinyLegendary:
             self._current_restart_flag = SWSHDAWhenRestart.NotShiny_And_WonLegendary
             self.send_log("开始寻找击败传说宝可梦最佳路线")
@@ -343,6 +354,7 @@ class SwshDynamaxAdventures(BaseScript):
     def _cycle_init(self):
         self._battle_index = 0
         self._legendary_caught = False
+        self._current_pokemon_name = None
         consecutive = self._win_streaks_count
         consecutive_restart = self._dynite_ore_penalty_count
         if consecutive_restart >= 3:
@@ -389,7 +401,6 @@ class SwshDynamaxAdventures(BaseScript):
             self.send_log(error_msg)
             self._finished_process(error_msg)
 
-    # ==================== MODIFIED: BOSS战惩罚上限时强制使用精灵球 ====================
     def step_3_battle(self):
         status = self._swsh_da_battle.run()
         if status == SubStepRunningStatus.Running:
@@ -402,27 +413,30 @@ class SwshDynamaxAdventures(BaseScript):
             if self._swsh_da_battle.battle_status == SWSHDABattleResult.Won:
                 if self._battle_index >= 3:
                     self._legendary_caught = True
-                # ==================== MODIFIED START ====================
-                # 每场战斗胜利增加极矿石（原为捕获时增加）
-                self._dynite_ore_total += 1
-                self._ore_gained_this_cycle += 1
-                # ==================== MODIFIED END ====================
-                catch_flag = (
-                    self._catch_ball[self._battle_index] != SWSHDABallType.NotCatch)
-                # ---------- MODIFIED START ----------
+                catch_flag = (self._catch_ball[self._battle_index] != SWSHDABallType.NotCatch)
+                # ---------- 新增：识别宝可梦名称并调整球种 ----------
                 target_ball = self._catch_ball[self._battle_index].value
-                # 如果是 BOSS 战且极矿石惩罚已达到上限，强制使用精灵球
-                if self._battle_index >= 3 and self._dynite_ore_penalty_count >= DYNITE_ORE_PENALTY_LIMIT:
+                # 仅在启用“只使用柑果球捕获”且不是非捕获时进行替换
+                if self.get_para("only_use_apricorn_balls") and catch_flag:
+                    # 优先使用 action.png 时缓存的名称
+                    pokemon_name = getattr(self, '_current_pokemon_name', None)
+                    if pokemon_name is None:
+                        # 缓存未命中，实时识别（后备方案）
+                        pokemon_name = self._swsh_da_battle.get_pokemon_name()
+                    if pokemon_name:
+                        target_ball = self._get_alternative_ball(pokemon_name, target_ball)
+                # ---------- 新增结束 ----------
+                # 如果是 BOSS 战且极矿石惩罚已达到上限，强制使用精灵球（新选项除外）
+                if (self._battle_index >= 3 and self._dynite_ore_penalty_count >= DYNITE_ORE_PENALTY_LIMIT
+                        and self._restart_flag != SWSHDAWhenRestart.KeepAnyShiny_And_LimitRestart):
                     target_ball = SWSHDABallType.PokeBall.value
                     self.send_log("极矿石惩罚已达上限，本轮 BOSS 战强制使用精灵球")
-                # ---------- MODIFIED END ----------
                 self._swsh_da_catch = SWSHDACatch(
                     self, battle_index=self._battle_index, catch=catch_flag, target_ball=target_ball)
                 self._cycle_step_index += 1
                 if TRACE_LOG:
                     self.send_log("胜利，准备捕捉")
                 return
-
             self._win_streaks_count = 0
 
             if self._swsh_da_battle.battle_status == SWSHDABattleResult.Lost3:
@@ -441,7 +455,8 @@ class SwshDynamaxAdventures(BaseScript):
             if self._swsh_da_battle.battle_status == SWSHDABattleResult.Lost1:
                 self._cycle_step_index = 5
                 self._swsh_da_shiny_keep = SWSHDAShinyKeep(
-                    self, only_keep_shiny_legendary=self._only_keep_shiny_legendary, legendary_caught=self._legendary_caught)
+                    self, only_keep_shiny_legendary=self._only_keep_shiny_legendary, legendary_caught=self._legendary_caught,keep_all_shiny=(self._restart_flag == SWSHDAWhenRestart.KeepAnyShiny_And_LimitRestart),
+                        used_ball=self._catch_ball[self._battle_index].value)
                 if TRACE_LOG:
                     self.send_log("失败1，带走宝可梦")
                 return
@@ -459,7 +474,6 @@ class SwshDynamaxAdventures(BaseScript):
             error_msg = f"swsh_da_battle 函数返回状态为 {status.name}"
             self.send_log(error_msg)
             self._finished_process(error_msg)
-    # ==================== MODIFIED END ====================
 
     def step_4_catch(self):
         status = self._swsh_da_catch.run()
@@ -476,15 +490,15 @@ class SwshDynamaxAdventures(BaseScript):
                     self._win_streaks_count += 1
                     if TRACE_LOG:
                         self.send_log("传说宝可梦捕捉成功")
-
                     if self._win_streaks_count >= 3 and self._restart_flag == SWSHDAWhenRestart.FindCatchLegendaryBestRoad_And_NotShinyLegendary and self._current_restart_flag != SWSHDAWhenRestart.NotShinyLegendary:
                         self._only_keep_shiny_legendary = True
                         self._current_restart_flag = SWSHDAWhenRestart.NotShinyLegendary
                         self.send_log("连续3次击败传说宝可梦，已确认最佳路线")
-
                     self._cycle_step_index = 5
                     self._swsh_da_shiny_keep = SWSHDAShinyKeep(
-                        self, only_keep_shiny_legendary=self._only_keep_shiny_legendary, legendary_caught=self._legendary_caught)
+                        self, only_keep_shiny_legendary=self._only_keep_shiny_legendary, legendary_caught=self._legendary_caught,
+                        keep_all_shiny=(self._restart_flag == SWSHDAWhenRestart.KeepAnyShiny_And_LimitRestart),
+                            used_ball=self._swsh_da_catch._target_ball)
                     return
                 else:
                     switch_flag = self._switch_pokemon[self._battle_index]
@@ -608,10 +622,7 @@ class SwshDynamaxAdventures(BaseScript):
 
             # 传说捕获但未闪光，清零极矿石
             if self._legendary_caught and self._swsh_da_shiny_keep.kept_result == SWSHDAShinyKeepResult.NotKept:
-                if penalty_limit:
-                    self._ore_gained_this_cycle += 2
-                    self._dynite_ore_total = self._dynite_ore_total+2
-                else:
+                if not penalty_limit:
                     self._dynite_ore_total = self._dynite_ore_total - self._ore_gained_this_cycle
                     self.send_log(f"传说宝可梦非闪光，清零本轮获得的 {self._ore_gained_this_cycle} 个极矿石，剩余极矿石: {self._dynite_ore_total}")
                     self._ore_gained_this_cycle = 0
@@ -627,7 +638,8 @@ class SwshDynamaxAdventures(BaseScript):
             # 以下为原有的重启判断逻辑
             if (self._current_restart_flag == SWSHDAWhenRestart.NotShiny_And_WonLegendary
                 or self._current_restart_flag == SWSHDAWhenRestart.NotShinyLegendary_And_WonLegendary
-                or (self._current_restart_flag == SWSHDAWhenRestart.NotShiny_And_WonLegendary_Limit_Restart and self._dynite_ore_penalty_count < DYNITE_ORE_PENALTY_LIMIT)) and self._legendary_caught:
+                or (self._current_restart_flag == SWSHDAWhenRestart.NotShiny_And_WonLegendary_Limit_Restart and self._dynite_ore_penalty_count < DYNITE_ORE_PENALTY_LIMIT)
+                or (self._current_restart_flag == SWSHDAWhenRestart.KeepAnyShiny_And_LimitRestart and self._dynite_ore_penalty_count < DYNITE_ORE_PENALTY_LIMIT)) and self._legendary_caught:
                 self.send_log("成功击败传说宝可梦，未检测到闪光宝可梦，重启开始下一轮大冒险")
                 self.restart_game()
                 return
@@ -646,6 +658,18 @@ class SwshDynamaxAdventures(BaseScript):
 
     def step_7_finish(self):
         status = self._swsh_da_finish.run()
+        # 获取子步骤中识别的极矿石数量（如果有）
+        if hasattr(self, '_ore_gained_identified'):
+            ore_gained = getattr(self, '_ore_gained_from_finish', 0)
+            if ore_gained > 0:
+                self._dynite_ore_total += ore_gained
+                self._ore_gained_this_cycle += ore_gained
+                #self.send_log(f"本次获得 {ore_gained} 个极矿石，累计极矿石: {self._dynite_ore_total}")
+            # 清除标志，准备下一轮
+            delattr(self, '_ore_gained_identified')
+            if hasattr(self, '_ore_gained_from_finish'):
+                delattr(self, '_ore_gained_from_finish')
+        # 重置惩罚计数
         self._dynite_ore_penalty_count = 0
         if status == SubStepRunningStatus.Running:
             return
@@ -662,3 +686,62 @@ class SwshDynamaxAdventures(BaseScript):
                        1, {"secondary": str(self._secondary)}, True, None)
         self._dynite_ore_penalty_count += 1
         self._re_cycle()
+# ---------- 新增：闪光宝可梦捕获记录 ----------
+    def _init_captured_shiny_map(self):
+        """从文件中加载闪光捕获记录，格式：{宝可梦名称: set(球种)}"""
+        self._captured_shiny_map = {}
+        # 柑果球列表（根据用户要求）
+        self._apricorn_balls = ["究极球", "月亮球", "诱饵球", "速度球", "甜蜜球", 
+                                "友友球", "等级球", "沉重球", "竞赛球", "狩猎球"]
+        data_dir = "data"
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+        for ball in self._apricorn_balls:
+            file_path = os.path.join(data_dir, f"captured_shiny_{ball}.txt")
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        name = line.strip()
+                        if name:
+                            if name not in self._captured_shiny_map:
+                                self._captured_shiny_map[name] = set()
+                            self._captured_shiny_map[name].add(ball)
+        self.send_log(f"已加载闪光捕获记录，共 {len(self._captured_shiny_map)} 种宝可梦")
+
+    def _save_captured_shiny(self, pokemon_name: str, ball_used: str):
+        """保存一条闪光捕获记录"""
+        data_dir = "data"
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+        file_path = os.path.join(data_dir, f"captured_shiny_{ball_used}.txt")
+        # 检查是否已记录
+        if pokemon_name in self._captured_shiny_map.get(pokemon_name, set()):
+            return
+        with open(file_path, 'a', encoding='utf-8') as f:
+            f.write(pokemon_name + "\n")
+        if pokemon_name not in self._captured_shiny_map:
+            self._captured_shiny_map[pokemon_name] = set()
+        self._captured_shiny_map[pokemon_name].add(ball_used)
+        self.send_log(f"记录闪光捕获：{pokemon_name} 使用 {ball_used}")
+
+    def _get_alternative_ball(self, pokemon_name: str, current_ball: str) -> str:
+        """
+        根据历史闪光捕获记录，推荐一个未被使用过的球种。
+        如果当前球种已使用过，则从柑果球列表中找第一个未使用过的；
+        如果全部已使用，则返回原球种。
+        """
+        if not hasattr(self, '_apricorn_balls'):
+            self._apricorn_balls = ["究极球", "月亮球", "诱饵球", "速度球", "甜蜜球", 
+                                    "友友球", "等级球", "沉重球", "竞赛球", "狩猎球"]
+        captured_set = self._captured_shiny_map.get(pokemon_name, set())
+        # 如果当前球种未被捕获过，直接使用
+        if current_ball not in captured_set:
+            return current_ball
+        # 查找第一个未捕获的球种
+        for ball in self._apricorn_balls:
+            if ball not in captured_set:
+                self.send_log(f"宝可梦 {pokemon_name} 已用 {current_ball} 捕获过，改用 {ball}")
+                return ball
+        # 全部已捕获，保持原样
+        self.send_log(f"宝可梦 {pokemon_name} 已用所有柑果球捕获过，保持当前球种 {current_ball}")
+        return current_ball

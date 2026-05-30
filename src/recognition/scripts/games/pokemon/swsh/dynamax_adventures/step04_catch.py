@@ -32,6 +32,7 @@ class SWSHDACatch(BaseSubStep):
             self._catch_flag = True
         self._catch_result = SWSHDACatchResult.NotCaught
         self._fail_saved = False
+    
 
     @property
     def catch_result(self):
@@ -111,10 +112,10 @@ class SWSHDACatch(BaseSubStep):
 
                 self._process_step_index += 1
             else:
-                if self._target_ball == '究极球':
-                    self.script.macro_text_run("LEFT:0.1", block=True)
-                else:
+                if self._target_ball == '究极球' or self._target_ball == '诱饵球' or self._target_ball == "速度球" or self._target_ball == "梦境球":
                     self.script.macro_text_run("RIGHT:0.1", block=True)
+                else:
+                    self.script.macro_text_run("LEFT:0.1", block=True)
                 self.time_sleep(0.5)
                 self._last_action_time_monotonic = time.monotonic()
 

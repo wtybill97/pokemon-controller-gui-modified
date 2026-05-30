@@ -15,4 +15,5 @@ config.json
 ocr_fail_screenshots/
 .venv/
 /.png
+data/
 

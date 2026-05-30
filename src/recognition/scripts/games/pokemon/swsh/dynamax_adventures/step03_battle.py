@@ -4,6 +4,7 @@ from recognition.image_func import find_matches
 from recognition.scripts.base.base_script import BaseScript
 from recognition.scripts.base.base_sub_step import BaseSubStep, SubStepRunningStatus
 import cv2
+import re
 import numpy as np
 import pytesseract
 from recognition.ocr.rapidocr import RapidOCR
@@ -35,6 +36,7 @@ class SWSHDABattle(BaseSubStep):
         self._disable_dynamax = disable_dynamax
         self._battle_status = 0
         self._last_action_time_monotonic = time.monotonic()
+        self._pokemon_name_cached = None
         self._action_template = cv2.imread(
             "resources/img/recognition/pokemon/swsh/dynamax_adventures/battle/action.png")
         self._action_template = cv2.cvtColor(self._action_template, cv2.COLOR_BGR2GRAY)
@@ -121,6 +123,12 @@ class SWSHDABattle(BaseSubStep):
         res = cv2.matchTemplate(crop_gray, self._action_template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         if max_val >= threshold:
+            # 第一次匹配到 action.png 时识别宝可梦名称并缓存
+            if self._pokemon_name_cached is None:
+                name = self.get_pokemon_name()
+                if name:
+                    self._pokemon_name_cached = name
+                    self.script._current_pokemon_name = name
             self.script.macro_text_run("A:0.1", block=True)
             self._last_action_time_monotonic = time.monotonic()
             self.time_sleep(0.5)
@@ -321,3 +329,21 @@ class SWSHDABattle(BaseSubStep):
                 return corrected_pp
             # 否则保持0（正常消耗，如上一轮1或2）
         return ocr_pp
+
+    def get_pokemon_name(self):
+        """识别画面中宝可梦名称（区域 x=350, y=12, w=250, h=52）"""
+        try:
+            frame = self.script.current_frame_960x540
+            ocr = self._get_ocr()  # 复用 RapidOCR 实例
+            x, y, w, h = 350, 12, 250, 52
+            roi = frame[y:y+h, x:x+w]
+            text, _ = ocr.recognize_single_roi(roi, (0, 0, w, h), preprocess=True)
+            if text:
+                # 去除标点符号和空格
+                import re
+                name = re.sub(r'[^\w\u4e00-\u9fff]', '', text)
+                self.script.send_log(f"识别到宝可梦名称：{name}")
+                return name
+        except Exception as e:
+            self.script.send_log(f"识别宝可梦名称失败：{e}")
+        return None

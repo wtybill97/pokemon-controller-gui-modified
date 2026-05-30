@@ -2,9 +2,18 @@ from enum import Enum
 from recognition.scripts.base.base_script import BaseScript
 from recognition.scripts.base.base_sub_step import BaseSubStep, SubStepRunningStatus
 import cv2
-
+import re
+from recognition.ocr.rapidocr import RapidOCR
 from recognition.scripts.games.pokemon.swsh.common.image_match.checkbox_match import ChatBoxMatch
 from recognition.scripts.games.pokemon.swsh.common.image_match.pokemon_detail_shiny_match import PokemonDetailShinyMatch
+
+# 复用通用 OCR 引擎（与 battle 中一致）
+_shared_ocr = None
+def get_ocr():
+    global _shared_ocr
+    if _shared_ocr is None:
+        _shared_ocr = RapidOCR(upscale=3.0, enable_preprocess=True)
+    return _shared_ocr
 
 
 class SWSHDAFinish(BaseSubStep):
@@ -52,8 +61,26 @@ class SWSHDAFinish(BaseSubStep):
         self._process_step_index += 1
 
     def _process_steps_1(self):
+        # 原有按键序列
         self.script.macro_text_run("A:0.1->3->B:0.1->0.5->B:0.1->0.5->A:0.1", block=True)
         self.time_sleep(0.5)
+        
+        # ========== 识别极矿石数量（仅第一次进入时识别） ==========
+        if not hasattr(self.script, '_ore_gained_identified'):
+            frame = self.script.current_frame_960x540
+            ocr = get_ocr()
+            x, y, w, h = 818, 132, 76, 30
+            roi = frame[y:y+h, x:x+w]
+            text, score = ocr.recognize_single_roi(roi, (0, 0, w, h), preprocess=True)
+            ore_count = 0
+            if text:
+                match = re.search(r'\d+', text)
+                if match:
+                    ore_count = int(match.group())
+            self.script._ore_gained_from_finish = ore_count
+            self.script._ore_gained_identified = True   # 标记已识别
+    # ====================================================
+        
         self._process_step_index += 1
 
     def _match_get_rewards_page(self, gray, threshold=0.9):
@@ -61,7 +88,7 @@ class SWSHDAFinish(BaseSubStep):
         crop_gray = gray[crop_y:crop_y+crop_h, crop_x:crop_x+crop_w]
         res = cv2.matchTemplate(
             crop_gray, self._get_rewards_label_template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        _, max_val, _, _ = cv2.minMaxLoc(res)
         return max_val >= threshold
 
     def _process_steps_2(self):
@@ -78,5 +105,5 @@ class SWSHDAFinish(BaseSubStep):
         crop_gray = gray[crop_y:crop_y+crop_h, crop_x:crop_x+crop_w]
         res = cv2.matchTemplate(
             crop_gray, self._chatbox_template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        _, max_val, _, _ = cv2.minMaxLoc(res)
         return max_val >= threshold
